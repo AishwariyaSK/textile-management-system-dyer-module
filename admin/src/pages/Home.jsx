@@ -49,14 +49,14 @@ const Home = () => {
       } 
       else if (res.status==401) {
         toast.error("Session expired. Please login again.");
-        localStorage.removeItem("dyer-token");
+        localStorage.removeItem("token");
         navigate("/signin");
       }
       else {
         toast.error(res.data.message);
       }
     } catch (error) {
-      handleError(error);
+      console.error("Error fetching batches:", error);
     }
   };
 
@@ -72,7 +72,7 @@ const Home = () => {
         setCompanyList(uniqueCompanies);
       }
     } catch (error) {
-      toast.error("Failed to fetch company list");
+      console.error("Failed to fetch company list",error);
     }
   };
 
@@ -99,9 +99,9 @@ const Home = () => {
 
   const handleSortChange = (e) => setSortBy(e.target.value);
 
-  useEffect(() => {
-    fetchBatches();
-    fetchCompanies();
+  useEffect(async() => {
+    await fetchBatches();
+    await fetchCompanies();
   }, []);
 
   useEffect(() => {

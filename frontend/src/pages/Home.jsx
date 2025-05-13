@@ -53,8 +53,8 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBatchData();
+  useEffect(async () => {
+    await fetchBatchData();
   }, []);
 
   const handleCheckboxChange = (status) => {
