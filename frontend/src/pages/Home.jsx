@@ -24,7 +24,7 @@ const Home = () => {
     try {
       const token = localStorage.getItem("dyer-token");
       if (!token) {
-        toast.error("Please login to continue");
+        // toast.error("Please login to continue");
         navigate("/signin");
         return;
       }
@@ -48,7 +48,7 @@ const Home = () => {
         toast.error(res.data.message);
       }
     } catch (err) {
-      toast.error("Failed to fetch orders");
+      // toast.error("Failed to fetch orders");
       console.error(err);
     }
   };

@@ -34,7 +34,8 @@ const Home = () => {
   const fetchBatches = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("Please login first");
+      // toast.error("Please login first");
+      navigate("/signin");
       return;
     }
     try {
@@ -45,8 +46,14 @@ const Home = () => {
       });
       if (response.data.success) {
         setBatches(response.data.purchaseOrders);
-      } else {
-        handleAuthErrors(response);
+      } 
+      else if (res.status==401) {
+        toast.error("Session expired. Please login again.");
+        localStorage.removeItem("dyer-token");
+        navigate("/signin");
+      }
+      else {
+        toast.error(res.data.message);
       }
     } catch (error) {
       handleError(error);
