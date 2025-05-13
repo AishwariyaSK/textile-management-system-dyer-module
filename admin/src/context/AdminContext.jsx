@@ -8,7 +8,7 @@ export const AdminContext=createContext();
 
 const AdminContextProvider=({children})=>{
 
-    const backendUrl="http://localhost:5000/api"
+    const backendUrl="https://kumarakurutex-dyer-dashboard-backend.onrender.com/api"
 
     const navigate=useNavigate();
     const [token, setToken] = useState(null);
