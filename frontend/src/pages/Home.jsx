@@ -5,13 +5,13 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 const FILTER_OPTIONS = [
-  'sent for dyeing',
-  'received for dyeing',
-  'sent dyed material',
-  'received dyed material',
-  'quality check',
-  'payment',
-  'completed'
+  "sent for dyeing",
+  "received for dyeing",
+  "sent dyed material",
+  "received dyed material",
+  "quality check",
+  "payment",
+  "completed",
 ];
 
 const Home = () => {
@@ -22,6 +22,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBatchData = async () => {
       const token = localStorage.getItem("dyer-token");
+
       if (!token) {
         toast.error("Please login to continue");
         navigate("/signin");
@@ -29,11 +30,14 @@ const Home = () => {
       }
 
       try {
-        const res = await axios.get(`${backendUrl}/purchaseOrder/getDyerPurchaseOrderByDyerId`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const res = await axios.get(
+          `${backendUrl}/purchaseOrder/getDyerPurchaseOrderByDyerId`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
+        );
 
         if (res.data.success) {
           setAllBatches(res.data.purchaseOrders);
@@ -66,13 +70,16 @@ const Home = () => {
   const filteredBatches =
     selectedStatuses.length === 0
       ? allBatches
-      : allBatches.filter((batch) => selectedStatuses.includes(batch.status));
+      : allBatches.filter((batch) =>
+          selectedStatuses.includes(batch.status)
+        );
 
   return (
-    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_3fr]">
-      <div className="m-4">
-        <h1 className="text-2xl font-bold m-3">Filter</h1>
-        <div className="border border-gray-300 p-2 mb-4 w-64 rounded">
+    <div className="flex flex-col lg:flex-row gap-4 p-4">
+      {/* Sidebar Filter */}
+      <div className="lg:w-1/4 w-full">
+        <h1 className="text-2xl font-bold mb-4">Filter</h1>
+        <div className="border border-gray-300 p-4 rounded shadow-sm bg-white">
           {FILTER_OPTIONS.map((status) => (
             <div className="flex items-center mb-2" key={status}>
               <input
@@ -83,7 +90,7 @@ const Home = () => {
                 onChange={() => handleCheckboxChange(status)}
                 checked={selectedStatuses.includes(status)}
               />
-              <label htmlFor={status} className="capitalize">
+              <label htmlFor={status} className="capitalize text-gray-800">
                 {status}
               </label>
             </div>
@@ -91,20 +98,25 @@ const Home = () => {
         </div>
       </div>
 
-      <div>
+      {/* Batch Cards */}
+      <div className="lg:w-3/4 w-full">
         {filteredBatches.length === 0 ? (
-          <h1 className="text-2xl font-bold m-3">No orders yet</h1>
+          <h1 className="text-2xl font-bold text-center mt-10">
+            No orders yet
+          </h1>
         ) : (
-          filteredBatches.map((batch, index) => (
-            <BatchCard
-              key={index}
-              id={batch._id}
-              status={batch.status}
-              products={batch.products}
-              targetDeliveryDate={batch.targetDeliveryDate}
-              purchaseDate={batch.purchaseDate}
-            />
-          ))
+          <div className="grid gap-4">
+            {filteredBatches.map((batch, index) => (
+              <BatchCard
+                key={index}
+                id={batch._id}
+                status={batch.status}
+                products={batch.products}
+                targetDeliveryDate={batch.targetDeliveryDate}
+                purchaseDate={batch.purchaseDate}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
