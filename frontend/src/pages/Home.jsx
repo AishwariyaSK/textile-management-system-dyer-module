@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 import BatchCard from "../components/BatchCard";
 import { toast } from "react-toastify";
@@ -20,42 +19,41 @@ const Home = () => {
   const [allBatches, setAllBatches] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
 
-  const fetchBatchData = async () => {
-    try {
+  useEffect(() => {
+    const fetchBatchData = async () => {
       const token = localStorage.getItem("dyer-token");
       if (!token) {
-        // toast.error("Please login to continue");
+        toast.error("Please login to continue");
         navigate("/signin");
         return;
       }
-      
 
-      const res = await axios.get(`${backendUrl}/purchaseOrder/getDyerPurchaseOrderByDyerId`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      try {
+        const res = await axios.get(`${backendUrl}/purchaseOrder/getDyerPurchaseOrderByDyerId`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (res.data.success) {
+          setAllBatches(res.data.purchaseOrders);
+        } else {
+          toast.error(res.data.message || "Failed to fetch orders");
         }
-      });
-
-      if (res.data.success) {
-        setAllBatches(res.data.purchaseOrders);
-      } 
-      else if (res.status==401) {
-        toast.error("Session expired. Please login again.");
-        localStorage.removeItem("dyer-token");
-        navigate("/signin");
+      } catch (err) {
+        if (err.response?.status === 401) {
+          toast.error("Session expired. Please login again.");
+          localStorage.removeItem("dyer-token");
+          navigate("/signin");
+        } else {
+          toast.error("Failed to fetch orders");
+          console.error("Error fetching orders:", err);
+        }
       }
-      else {
-        toast.error(res.data.message);
-      }
-    } catch (err) {
-      // toast.error("Failed to fetch orders");
-      console.error(err);
-    }
-  };
+    };
 
-  useEffect(async () => {
-    await fetchBatchData();
-  }, []);
+    fetchBatchData();
+  }, [backendUrl, navigate]);
 
   const handleCheckboxChange = (status) => {
     setSelectedStatuses((prev) =>
@@ -105,7 +103,6 @@ const Home = () => {
               products={batch.products}
               targetDeliveryDate={batch.targetDeliveryDate}
               purchaseDate={batch.purchaseDate}
-              // quantity={batch.orders.length}
             />
           ))
         )}

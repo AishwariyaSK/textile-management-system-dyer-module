@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { AdminContext } from "../context/AdminContext";
 import BatchCard from "../components/BatchCard";
 import { toast } from "react-toastify";
@@ -31,10 +30,30 @@ const Home = () => {
     );
   };
 
+  const handleError = (error) => {
+    if (error.response?.data?.message) {
+      toast.error(error.response.data.message);
+    } else {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handleAuthErrors = (response) => {
+    if (response.status === 401) {
+      toast.error("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      navigate("/signin");
+    } else if (response.status === 403) {
+      toast.error("You are not authorized to access this page");
+      navigate("/signin");
+    } else {
+      toast.error(response.data?.message || "Unexpected error");
+    }
+  };
+
   const fetchBatches = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      // toast.error("Please login first");
       navigate("/signin");
       return;
     }
@@ -46,17 +65,11 @@ const Home = () => {
       });
       if (response.data.success) {
         setBatches(response.data.purchaseOrders);
-      } 
-      else if (res.status==401) {
-        toast.error("Session expired. Please login again.");
-        localStorage.removeItem("token");
-        navigate("/signin");
-      }
-      else {
-        toast.error(res.data.message);
+      } else {
+        handleAuthErrors(response);
       }
     } catch (error) {
-      console.error("Error fetching batches:", error);
+      handleError(error);
     }
   };
 
@@ -72,36 +85,18 @@ const Home = () => {
         setCompanyList(uniqueCompanies);
       }
     } catch (error) {
-      console.error("Failed to fetch company list",error);
-    }
-  };
-
-  const handleError = (error) => {
-    if (error.response?.data?.message) {
-      toast.error(error.response.data.message);
-    } else {
-      toast.error("Something went wrong");
-    }
-  };
-
-  const handleAuthErrors = (response) => {
-    if (response.status === 401) {
-      toast.error("Session expired. Please login again.");
-      localStorage.removeItem("token");
-      window.location.href = "/signin";
-    } else if (response.status === 403) {
-      toast.error("You are not authorized to access this page");
-      navigate("/signin");
-    } else {
-      toast.error(response.data.message);
+      handleError(error);
     }
   };
 
   const handleSortChange = (e) => setSortBy(e.target.value);
 
-  useEffect(async() => {
-    await fetchBatches();
-    await fetchCompanies();
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchBatches();
+      await fetchCompanies();
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -112,7 +107,7 @@ const Home = () => {
     }
 
     if (selectedCompany) {
-      data = data.filter(batch => batch.dyer.companyName === selectedCompany);
+      data = data.filter(batch => batch.dyer?.companyName === selectedCompany);
     }
 
     if (sortBy) {
@@ -128,7 +123,7 @@ const Home = () => {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Left Sticky Sidebar */}
+      {/* Sidebar */}
       <div className="w-1/4 p-4 border-r overflow-y-auto sticky top-0 h-screen bg-white z-10">
         <h1 className="text-2xl font-bold mb-2">Filter</h1>
 
@@ -172,14 +167,14 @@ const Home = () => {
         </select>
       </div>
 
-      {/* Right Content Scrollable */}
+      {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {filteredData.length > 0 ? (
           filteredData.map((batch, index) => (
             <BatchCard
               key={index}
               id={batch._id}
-              company_name={batch.dyer.companyName}
+              company_name={batch.dyer?.companyName}
               status={batch.status}
             />
           ))
