@@ -67,7 +67,7 @@ const Home = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
-        const dyers = response.data.users.filter(user => user.role === "dyer");
+        const dyers = response.data.users.filter(user => user.role === "dyer" && user.approved);
         const uniqueCompanies = [...new Set(dyers.map(d => d.companyName))];
         setCompanyList(uniqueCompanies);
       }
