@@ -35,8 +35,9 @@ const NotificationListener = ({ backendUrl }) => {
               pauseOnHover: true,
               draggable: true,
             });
-            setLastChecked(Date.now());
+            
           }
+          setLastChecked(Date.now());
         }
       } catch (err) {
         console.error("Polling error:", err);
