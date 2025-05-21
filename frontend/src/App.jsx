@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import {ToastContainer} from 'react-toastify'
 import Signin from './pages/Signin'
@@ -10,13 +10,19 @@ import TrackOrder from './pages/TrackOrder'
 import NavBar from './components/NavBar'
 import RequestApproval from './pages/RequestApproval'
 import Notification from './pages/Notification'
+import NotificationListener from './components/NotificationListener'
+import { ShopContext } from './context/ShopContext'
+
+
 
 
 function App() {
+  const { backendUrl } = useContext(ShopContext);
 
   return (
     <div>
       <ToastContainer/>
+      <NotificationListener backendUrl={backendUrl}/>
       <NavBar/>
       <Routes>
         <Route path="/" element={<Home />} />

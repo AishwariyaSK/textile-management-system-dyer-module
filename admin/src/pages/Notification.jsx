@@ -1,98 +1,96 @@
-import React from 'react'
-import { useContext, useState, useEffect } from 'react'
-import { AdminContext } from '../context/AdminContext'
-import { toast } from 'react-toastify'
-import axios from 'axios'
-import NotificationCard from '../components/NotificationCard'
+import React, { useContext, useState, useEffect } from 'react';
+import { AdminContext } from '../context/AdminContext';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import NotificationCard from '../components/NotificationCard';
 
 const Notification = () => {
-  const { backendUrl, navigate } = useContext(AdminContext)
+  const { backendUrl, navigate } = useContext(AdminContext);
 
-  const [notifications, setNotifications] = useState([])
-  const [filteredNotifications, setFilteredNotifications] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [notifications, setNotifications] = useState([]);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [loading, setLoading] = useState(true); // 🌀 NEW
 
-  const categories = [
-    '', // No filter option
-    'status update',
-    'payment pending',
-    'approve'    
-  ]
-  
+  const categories = ['', 'status update', 'payment pending', 'approve'];
+
   const fetchNotifications = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to continue');
+      return;
+    }
+
+    setLoading(true); // ⏳ Start loading
+
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        toast.error('Please login to continue')
-        return
-      }
-      console.log("hiii");
       const res = await axios.get(`${backendUrl}/notification`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      // console.log(res.data);
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (res.data.success) {
-        // const noti=res.data.notifications.filter((noti) => noti.isForAdmin === true)
-        setNotifications(res.data.notifications)
-        setFilteredNotifications(res.data.notifications)
-        
+        setNotifications(res.data.notifications);
+        setFilteredNotifications(res.data.notifications);
       } else {
-        toast.error(res.data.message)
+        toast.error(res.data.message);
       }
     } catch (err) {
-      // toast.error('Failed to fetch notifications')
-      console.error('Error fetching notifications:', err)
-      if (err.response && err.response.data) {
-        toast.error(err.response.data.message)
+      console.error('Error fetching notifications:', err);
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error('Failed to fetch notifications');
       }
-      console.error('Error details:', err.response ? err.response.data : err.message)
-
+    } finally {
+      setLoading(false); // ✅ Done loading
     }
-  }
+  };
 
   const handleFilterChange = (e) => {
-    const category = e.target.value
-    setSelectedCategory(category)
+    const category = e.target.value;
+    setSelectedCategory(category);
     if (category === '') {
-      setFilteredNotifications(notifications)
+      setFilteredNotifications(notifications);
     } else {
-      setFilteredNotifications(notifications.filter(n => n.category === category))
+      setFilteredNotifications(notifications.filter(n => n.category === category));
     }
-  }
+  };
 
   const handleClearAll = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to continue');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        toast.error('Please login to continue')
-        return
-      }
       const res = await axios.delete(`${backendUrl}/notification/deleteAll`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (res.data.success) {
-        toast.success('All notifications cleared')
-        setNotifications([])
-        setFilteredNotifications([])
+        toast.success('All notifications cleared');
+        setNotifications([]);
+        setFilteredNotifications([]);
       } else {
-        toast.error(res.data.message)
+        toast.error(res.data.message);
       }
     } catch (err) {
-      toast.error('Failed to clear notifications')
+      toast.error('Failed to clear notifications');
     }
-  }
-
+  };
 
   useEffect(() => {
-    fetchNotifications()
-  }, [])
+    fetchNotifications();
+  }, []);
 
   return (
     <div className='flex flex-col'>
+      {/* Filter + Clear All Controls */}
       <div className='flex flex-col items-center'>
         <div className='item-center m-5'>
           <div>
@@ -108,7 +106,11 @@ const Notification = () => {
           </div>
         </div>
       </div>
-      {filteredNotifications.length > 0 ? (
+
+      {/* Loading, Data, or Empty */}
+      {loading ? (
+        <p className='text-center text-gray-500 text-lg'>Loading...</p>
+      ) : filteredNotifications.length > 0 ? (
         filteredNotifications.map((notification) => (
           <NotificationCard
             key={notification._id}
@@ -121,16 +123,16 @@ const Notification = () => {
             dateTime={notification.dateTime}
             category={notification.category}
             onDelete={() => {
-              setNotifications(prev => prev.filter(n => n._id !== notification._id))
-              setFilteredNotifications(prev => prev.filter(n => n._id !== notification._id))
+              setNotifications(prev => prev.filter(n => n._id !== notification._id));
+              setFilteredNotifications(prev => prev.filter(n => n._id !== notification._id));
             }}
           />
         ))
       ) : (
-        <p>No notifications available</p>
+        <p className='text-center text-gray-600'>No notifications available</p>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Notification
+export default Notification;

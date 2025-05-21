@@ -11,14 +11,22 @@ import BatchDetail from './pages/BatchDetail'
 import ApproveDyer from './pages/ApproveDyer'
 import NavBar from './components/Navbar'
 import Notification from './pages/Notification'
+import NotificationListener from './components/NotificationListener';
+import { AdminContext } from './context/AdminContext';
+import { useContext } from 'react'
+
+
+
 
 
 function App() {
+  const { backendUrl } = useContext(AdminContext);
   
   return (
     <div>
       <ToastContainer/>
       <NavBar/>
+      <NotificationListener backendUrl={backendUrl} /> 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path='/login' element={<Login/>} />
@@ -28,7 +36,8 @@ function App() {
         <Route path='/dyer/:id' element={<DyerDetail/>} />
         <Route path='/batch/:id' element={<BatchDetail/>} />
         <Route path='/approve-dyer' element={<ApproveDyer/>} />   
-        <Route path='/notification' element={<Notification/>} />    
+        <Route path='/notification' element={<Notification/>} />   
+        
       </Routes>
     </div>
   )

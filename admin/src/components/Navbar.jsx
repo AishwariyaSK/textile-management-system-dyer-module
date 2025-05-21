@@ -10,6 +10,7 @@ const NavBar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("paymentReminderShown");
     setToken(null);
     navigate('/login');
   };

@@ -49,6 +49,8 @@ const NavBar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("dyer-token");
+    localStorage.removeItem("deadlineReminderShown");
+
     setToken(null);
     navigate('/signin');
   };

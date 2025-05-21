@@ -24,6 +24,10 @@ const Home = () => {
     { id: "completed", label: "Completed", value: "completed" },
   ];
 
+  const [loading, setLoading] = useState(true); // 🔄 loading flag
+
+
+
   const handleStatusChange = (value) => {
     setSelectedStatus((prev) =>
       prev.includes(value) ? prev.filter((status) => status !== value) : [...prev, value]
@@ -42,6 +46,7 @@ const Home = () => {
     if (response.status === 401) {
       toast.error("Session expired. Please login again.");
       localStorage.removeItem("token");
+      localStorage.removeItem("paymentReminderShown");
       navigate("/signin");
     } else if (response.status === 403) {
       toast.error("You are not authorized to access this page");
@@ -52,26 +57,33 @@ const Home = () => {
   };
 
   const fetchBatches = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/signin");
-      return;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/signin");
+    return [];
+  }
+
+  try {
+    const response = await axios.get(`${backendUrl}/purchaseOrder/getAllDyerPurchaseOrders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.success) {
+      const allBatches = response.data.purchaseOrders;
+      setBatches(allBatches);
+      return allBatches;
+    } else {
+      handleAuthErrors(response);
+      return [];
     }
-    try {
-      const response = await axios.get(`${backendUrl}/purchaseOrder/getAllDyerPurchaseOrders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.data.success) {
-        setBatches(response.data.purchaseOrders);
-      } else {
-        handleAuthErrors(response);
-      }
-    } catch (error) {
-      handleError(error);
-    }
-  };
+  } catch (error) {
+    handleError(error);
+    return [];
+  }
+};
+
 
   const fetchCompanies = async () => {
     try {
@@ -93,11 +105,24 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await fetchBatches();
-      await fetchCompanies();
+      setLoading(true);
+      const [fetchedBatches] = await Promise.all([fetchBatches(), fetchCompanies()]);
+      setLoading(false);
+
+      const pendingPayments = fetchedBatches.filter((batch) => batch.status === "payment");
+      console.log(pendingPayments.length, fetchedBatches.length);
+
+      const reminderShown = localStorage.getItem("paymentReminderShown");
+      if (!reminderShown && pendingPayments.length > 0) {
+        if (pendingPayments.length === 1) {toast.warn(`You have payment pending for ${pendingPayments.length} order`);}
+        else {toast.warn(`You have payment pending for ${pendingPayments.length} orders`);}
+        localStorage.setItem("paymentReminderShown", "true");
+      }
     };
+
     fetchData();
-  }, []);
+}, []);
+
 
   useEffect(() => {
     let data = [...batches];
@@ -123,6 +148,7 @@ const Home = () => {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      
       {/* Sidebar */}
       <div className="w-1/4 p-4 border-r overflow-y-auto sticky top-0 h-screen bg-white z-10">
         <h1 className="text-2xl font-bold mb-2">Filter</h1>
@@ -169,7 +195,9 @@ const Home = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {filteredData.length > 0 ? (
+        {loading ? (
+          <h1 className="text-2xl font-semibold text-gray-600">Loading...</h1> // 🌀 Loading state
+        ) : filteredData.length > 0 ? (
           filteredData.map((batch, index) => (
             <BatchCard
               key={index}
@@ -179,9 +207,10 @@ const Home = () => {
             />
           ))
         ) : (
-          <h1 className="text-2xl font-bold">No batches found</h1>
+          <h1 className="text-2xl font-bold">No batches found</h1> // Only shown when not loading
         )}
       </div>
+
     </div>
   );
 };

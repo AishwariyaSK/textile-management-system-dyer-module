@@ -29,38 +29,6 @@ const BatchDetail = () => {
 
   const allowedToUpdate = ["sent for dyeing", "received for dyeing"];
 
-  const createNotification=async ()=>{
-    try{
-      const token = localStorage.getItem('dyer-token')
-      if (!token) {
-        toast.error('Please login to continue')
-        return
-      }
-      let message, category;
-      if (order.status === 'payment') {
-        message = `payment pending for company ${order.dyerId.companyName}`;
-        category = 'payment pending';
-      }
-      else{
-        message = `Dyer ${order.dyerId.companyName} has updated the status to ${order.status}`;
-        category = 'status update';
-      }
-      const res = await axios.post(`${backendUrl}/notification/create`, {message, isForAdmin: true, category, batchId:id}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      if (res.data.success) {
-        // toast.success('Notification created successfully')
-      } else {
-        // toast.error(res.data.message)
-        console.log(res.data.message)
-      }
-    }catch(err) {
-      toast.error('Failed to create notification')
-      console.error('notification failed',err)
-    }
-  }
 
   const fetchOrder = async () => {
     try {
