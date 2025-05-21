@@ -35,15 +35,16 @@ const NotificationListener = ({ backendUrl }) => {
               pauseOnHover: true,
               draggable: true,
             });
-            setLastChecked(Date.now());
+            
           }
+          setLastChecked(Date.now());
         }
       } catch (err) {
         console.error("Polling error:", err);
       }
     };
 
-    const interval = setInterval(pollNotifications, 10000); // every 30 seconds
+    const interval = setInterval(pollNotifications, 30000); // every 30 seconds
 
     return () => clearInterval(interval);
   }, [backendUrl]);

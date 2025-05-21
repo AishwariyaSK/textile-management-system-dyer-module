@@ -44,7 +44,7 @@ const NotificationListener = ({ backendUrl }) => {
       }
     };
 
-    const interval = setInterval(pollNotifications, 10000); // every 30 seconds
+    const interval = setInterval(pollNotifications, 30000); // every 30 seconds
 
     return () => clearInterval(interval);
   }, [backendUrl]);
